@@ -1,7 +1,7 @@
 def connect():
     import network
     from config import config
-    
+
     sta_if = network.WLAN(network.STA_IF)
     if not sta_if.isconnected():
         print('connecting to network...')

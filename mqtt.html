@@ -1,0 +1,78 @@
+<html>
+
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js" type="text/javascript">
+    </script>
+    <script>
+        // Create a client instance
+        client = new Paho.MQTT.Client("farmer.cloudmqtt.com", 36421, "clientId");
+
+        // set callback handlers
+        client.onConnectionLost = onConnectionLost;
+        client.onMessageArrived = onMessageArrived;
+
+        var options = {
+            userName: "aqldhejp",
+            password: "XumK4CkGS77e",
+            onSuccess: onConnect,
+            useSSL: true
+        }
+
+        // connect the client
+        client.connect(options);
+
+
+        // called when the client connects
+        function onConnect() {
+            // Once a connection has been made, make a subscription and send a message.
+            console.log("interactions");
+            client.subscribe("interactions");
+            client.subscribe("timing");
+            message = new Paho.MQTT.Message("Hello");
+            message.destinationName = "alarm";
+            client.send(message);
+            document.getElementById("device").style.visibility = "visible";
+        }
+
+        // called when the client loses its connection
+        function onConnectionLost(responseObject) {
+            if (responseObject.errorCode !== 0) {
+                console.log("onConnectionLost:" + responseObject.errorMessage);
+                document.getElementById("device").style.visibility = "hidden";
+            }
+        }
+
+        // called when a message arrives
+        function onMessageArrived(message) {
+            console.log("Msg:" + message.payloadString);
+            console.log("Topic:" + message.destinationName);
+            if (message.destinationName == "interactions" && message.payloadString == 1) {
+                document.getElementById("content").innerHTML = "<strong>Karta - Region X</strong><br>Överblick";
+            } else if (message.destinationName == "interactions" && message.payloadString == 2) {
+                document.getElementById("content").innerHTML = "<strong>Karta - Region X</strong><br>Inzoomad på mest kritiskt område";
+            } else if (message.destinationName == "interactions" && message.payloadString == 3) {
+                document.getElementById("content").innerHTML = "<strong>Karta - Region X</strong><br>Inzoomad på nästa kritiska område";
+            } else if (message.destinationName == "interactions" && message.payloadString == 4) {
+                document.getElementById("content").innerHTML = "<strong>Karta - Region X</strong><br>inzoomad på föregående kritiska område";
+            } else if (message.destinationName == "timing") {
+                document.getElementById("time").innerHTML = message.payloadString;
+                document.getElementById("timing").style.visibility = "visible";
+            }
+        }
+    </script>
+</head>
+
+<body style="background-color:seashell">
+    <div style="width: 450px; height: 350px; background:cornflowerblue; padding: 60px; margin: 10px auto 0; font-size: 40px; font-weight: normal; font-family: 'Comic Sans MS'; text-align: center"
+        id="navigation">
+        <div id="content"><strong>Karta - Region X</strong><br>Överblick</div>
+        <br><br>
+        <small id="timing" style="font-size: 12px; visibility: hidden">Tid: +<span id="time">0</span> min</small>
+    </div>
+    <div id="device"
+        style="visibility: hidden; margin: 0 auto; padding: 0 60px 0 60px; width: 450px; height: 10px; background-color: springgreen">
+    </div>
+
+</body>
+
+</html>

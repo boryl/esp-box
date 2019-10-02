@@ -5,19 +5,23 @@ import esp32
 
 class Flamingo:
 
-    def __init__(self, battery_led, battery_threshold, power_switch, led_strip1, led_strip2):
+    def __init__(self, machine_config):
         self.battery_reader = ADC(Pin(35))
         self.battery_reader.atten(ADC.ATTN_11DB)
-        self.battery_threshold = battery_threshold
-        self.battery_led = Pin(battery_led, Pin.OUT)
+        self.battery_threshold = machine_config['battery_threshold']
+        self.battery_led = Pin(machine_config['battery_led'], Pin.OUT)
         self.battery_level = self.batteryCheck()
         
-        self.led_strip1 = Pin(led_strip1, Pin.OUT)
-        self.led_strip2 = Pin(led_strip2, Pin.OUT)
+        #self.led_strip1 = Pin(led_strip1, Pin.OUT)
+        #self.led_strip2 = Pin(led_strip2, Pin.OUT)
         
+        self.button1 = Pin(machine_config['button1'], Pin.IN)
+        self.button2 = Pin(machine_config['button2'], Pin.IN)
+        self.button3 = Pin(machine_config['button3'], Pin.IN)
+            
         self.battery_led.value(0)
         
-        self.power_switch = Pin(power_switch, Pin.IN)
+        self.power_switch = Pin(machine_config['power_switch'], Pin.IN)
         esp32.wake_on_ext0(pin = self.power_switch, level = esp32.WAKEUP_ANY_HIGH)
     
     def batteryCheck(self):
@@ -39,7 +43,12 @@ class Flamingo:
         self.led_strip1.value(1)
         self.led_strip2.value(1)
         print("strips on")
-        await asyncio.sleep_ms(int(json['on_for']))
+        try:
+            on_for = int(json['on_for'])
+        except Exception:
+            on_for = 1200
+            print("invalid json: on_for")
+        await asyncio.sleep_ms(on_for)
         self.led_strip1.value(0)
         self.led_strip2.value(0)
         print("strips off")
